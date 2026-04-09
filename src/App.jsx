@@ -1,17 +1,24 @@
 import { useState } from 'react'
 import './App.css'
 import { Button } from 'react-bootstrap'
+import { Routes, Route } from 'react-router-dom'
+import NavigationBar from './NavigationBar'
+import Footer from './Footer'
+import HomePage from './HomePage'
+import AboutPage from './AboutPage'
+
 
 function App() {
-  const [count, setCount] = useState(0)
-
-  return (
+return(
     <>
-      <div>
-        <h1>Hello World!</h1>
-        <Button onClick={() => setCount(count + 1)}>Click Me!</Button>
-        <p>Count: {count}</p>
-      </div> 
+    <NavigationBar />
+
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/about" element={<AboutPage />} />
+    </Routes>
+    
+    <Footer/>
     </>
   )
 }
