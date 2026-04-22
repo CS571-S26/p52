@@ -33,7 +33,8 @@ const formatCreatedDate = (note) => {
 
 function NotesWidget() {
     const [notes] = useLocalStorage('notes', []);
-    const sortedNotes = [...notes].sort((a, b) => getCreatedTimestamp(b) - getCreatedTimestamp(a));
+    const safeNotes = Array.isArray(notes) ? notes : [];
+    const sortedNotes = [...safeNotes].sort((a, b) => getCreatedTimestamp(b) - getCreatedTimestamp(a));
 
     return (
         <Card className="h-100 w-100">
@@ -48,12 +49,23 @@ function NotesWidget() {
                     <ListGroup variant="flush" className="flex-grow-1 overflow-auto">
                         {sortedNotes.map((note) => (
                             <ListGroup.Item key={note.id} className="px-0">
-                                <div className="fw-semibold text-truncate" title={note.title || 'Untitled Note'}>
-                                    <Link to={`/notes/${note.id}`}>{note.title || 'Untitled Note'}</Link>
+                                <div
+                                    className="fw-semibold text-truncate"
+                                    title={typeof note.title === 'string' ? note.title : 'Untitled Note'}
+                                >
+                                    <Link to={`/notes/${note.id}`}>
+                                        {typeof note.title === 'string' && note.title.trim()
+                                            ? note.title
+                                            : 'Untitled Note'}
+                                    </Link>
                                 </div>
                                 <small className="text-muted d-block">Created {formatCreatedDate(note)}</small>
-                                <small className="text-muted d-block text-truncate" title={note.content || ''}>
-                                    {(note.content || '').slice(0, 80) || 'No content yet'}
+                                <small
+                                    className="text-muted d-block text-truncate"
+                                    title={typeof note.content === 'string' ? note.content : ''}
+                                >
+                                    {(typeof note.content === 'string' ? note.content : '').slice(0, 80) ||
+                                        'No content yet'}
                                 </small>
                             </ListGroup.Item>
                         ))}

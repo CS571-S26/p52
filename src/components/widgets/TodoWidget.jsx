@@ -33,8 +33,13 @@ function TodoWidget() {
     const [tasks] = useLocalStorage('tasks', []);
     const [categories] = useLocalStorage('categories', []);
 
-    const categoryById = new Map(categories.map((category) => [category.id, category.name]));
-    const sortedTasks = [...tasks].sort((a, b) => getDueTimestamp(a) - getDueTimestamp(b));
+    const safeTasks = Array.isArray(tasks) ? tasks : [];
+    const safeCategories = Array.isArray(categories) ? categories : [];
+
+    const categoryById = new Map(
+        safeCategories.map((category) => [category?.id, category?.name || 'Uncategorized'])
+    );
+    const sortedTasks = [...safeTasks].sort((a, b) => getDueTimestamp(a) - getDueTimestamp(b));
 
     return (
         <Card className="h-100 w-100">
@@ -49,12 +54,19 @@ function TodoWidget() {
                     <ListGroup variant="flush" className="flex-grow-1 overflow-auto">
                         {sortedTasks.map((task) => (
                             <ListGroup.Item key={task.id} className="px-0">
-                                <div className="fw-semibold text-truncate" title={task.title || 'Untitled task'}>
-                                    {task.title || 'Untitled task'}
+                                <div
+                                    className="fw-semibold text-truncate"
+                                    title={typeof task.title === 'string' ? task.title : 'Untitled task'}
+                                >
+                                    {typeof task.title === 'string' && task.title.trim() ? task.title : 'Untitled task'}
                                 </div>
                                 <small className="text-muted d-block">Due {formatDueDate(task)}</small>
-                                <small className="text-muted d-block text-truncate" title={task.description || ''}>
-                                    {(task.description || '').slice(0, 80) || 'No description'}
+                                <small
+                                    className="text-muted d-block text-truncate"
+                                    title={typeof task.description === 'string' ? task.description : ''}
+                                >
+                                    {(typeof task.description === 'string' ? task.description : '').slice(0, 80) ||
+                                        'No description'}
                                 </small>
                                 <small className="text-muted d-block">
                                     {categoryById.get(task.categoryId) || 'Uncategorized'}
