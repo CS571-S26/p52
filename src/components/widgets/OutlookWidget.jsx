@@ -91,7 +91,7 @@ function OutlookWidget() {
             <Card.Body>
                 <div className="d-flex justify-content-between align-items-center mb-2">
                     <Card.Title className="mb-0">Outlook Inbox</Card.Title>
-                    <Link to="/settings">Configure</Link>
+                    {!hasAuth ? <Link to="/settings">Configure</Link> : null}
                 </div>
 
                 {!hasConfig ? (
