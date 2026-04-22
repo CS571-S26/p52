@@ -39,6 +39,7 @@ const createMsalInstance = async (config) => {
     });
 
     await msal.initialize();
+    await msal.handleRedirectPromise();
     return msal;
 };
 
@@ -72,32 +73,18 @@ export const clearOutlookAuth = () => {
 
 export const connectOutlook = async (config) => {
     const msal = await createMsalInstance(config);
-
-    const loginResult = await msal.loginPopup({
-        scopes: OUTLOOK_SCOPES,
-        prompt: 'select_account',
-    });
-
-    const account = loginResult.account || msal.getAllAccounts()[0];
-    if (!account) {
-        throw new Error('Outlook login failed to return an account');
-    }
-
-    let tokenResponse;
-
     try {
-        tokenResponse = await msal.acquireTokenSilent({
+        const tokenResponse = await msal.acquireTokenPopup({
             scopes: OUTLOOK_SCOPES,
-            account,
+            prompt: 'select_account',
         });
-    } catch {
-        tokenResponse = await msal.acquireTokenPopup({
-            scopes: OUTLOOK_SCOPES,
-            account,
-        });
+        return setStoredOutlookAuth(tokenResponse);
+    } catch (error) {
+        if (error?.errorCode === 'interaction_in_progress') {
+            throw new Error('Authentication is already in progress. Close any auth popup and try again.');
+        }
+        throw error;
     }
-
-    return setStoredOutlookAuth(tokenResponse);
 };
 
 export const disconnectOutlook = async (config) => {

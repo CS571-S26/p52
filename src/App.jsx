@@ -21,6 +21,7 @@ function App() {
                     <Route path="/notes" element={<NotesPage />} />
                     <Route path="/notes/:noteId" element={<NoteEditor />} />
                     <Route path="/settings" element={<SettingsPage />} />
+                    <Route path="*" element={<HomePage />} />
                 </Routes>
             </main>
 
