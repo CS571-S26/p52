@@ -6,6 +6,11 @@ import {
     disconnectOutlook,
     getStoredOutlookAuth,
 } from '../services/outlookAuth';
+import {
+    connectGoogleCalendar,
+    disconnectGoogleCalendar,
+    getStoredGoogleAuth,
+} from '../services/googleAuth';
 
 function SettingsPage() {
     const detectedRedirectUri = `${window.location.origin}${window.location.pathname}`;
@@ -22,13 +27,25 @@ function SettingsPage() {
     const [authStatus, setAuthStatus] = useState('');
     const [error, setError] = useState('');
     const [isConnecting, setIsConnecting] = useState(false);
+    const [googleConfig, setGoogleConfig] = useLocalStorage('googleConfig', {
+        clientId: '',
+    });
+    const [googleClientId, setGoogleClientId] = useState(googleConfig.clientId || '');
+    const [googleSaved, setGoogleSaved] = useState(false);
+    const [googleAuthStatus, setGoogleAuthStatus] = useState('');
+    const [googleError, setGoogleError] = useState('');
+    const [isGoogleConnecting, setIsGoogleConnecting] = useState(false);
 
     const storedAuth = getStoredOutlookAuth();
+    const storedGoogleAuth = getStoredGoogleAuth();
 
     const currentConfig = {
         clientId: clientId.trim(),
         tenantId: tenantId.trim() || 'common',
         redirectUri: redirectUri.trim() || detectedRedirectUri,
+    };
+    const currentGoogleConfig = {
+        clientId: googleClientId.trim(),
     };
 
     const saveOutlookConfig = (event) => {
@@ -70,6 +87,46 @@ function SettingsPage() {
         }
     };
 
+    const saveGoogleConfig = (event) => {
+        event.preventDefault();
+        setGoogleConfig(currentGoogleConfig);
+        setGoogleSaved(true);
+        setGoogleError('');
+    };
+
+    const handleGoogleConnect = async () => {
+        setGoogleSaved(false);
+        setGoogleAuthStatus('');
+        setGoogleError('');
+        setIsGoogleConnecting(true);
+
+        try {
+            setGoogleConfig(currentGoogleConfig);
+            await connectGoogleCalendar(currentGoogleConfig);
+            setGoogleAuthStatus('Connected to Google Calendar');
+        } catch (err) {
+            setGoogleError(err.message || 'Google connection failed');
+        } finally {
+            setIsGoogleConnecting(false);
+        }
+    };
+
+    const handleGoogleDisconnect = async () => {
+        setGoogleSaved(false);
+        setGoogleAuthStatus('');
+        setGoogleError('');
+        setIsGoogleConnecting(true);
+
+        try {
+            await disconnectGoogleCalendar();
+            setGoogleAuthStatus('Disconnected from Google Calendar');
+        } catch (err) {
+            setGoogleError(err.message || 'Unable to disconnect Google Calendar');
+        } finally {
+            setIsGoogleConnecting(false);
+        }
+    };
+
     return (
         <Container className="py-4">
             <h1>Settings</h1>
@@ -84,6 +141,13 @@ function SettingsPage() {
             ) : null}
             {authStatus ? <Alert variant="success">{authStatus}</Alert> : null}
             {error ? <Alert variant="danger">{error}</Alert> : null}
+            {googleSaved ? (
+                <Alert variant="success" onClose={() => setGoogleSaved(false)} dismissible>
+                    Google settings saved.
+                </Alert>
+            ) : null}
+            {googleAuthStatus ? <Alert variant="success">{googleAuthStatus}</Alert> : null}
+            {googleError ? <Alert variant="danger">{googleError}</Alert> : null}
 
             <Form onSubmit={saveOutlookConfig} className="mb-4">
                 <h4 className="mb-3">Outlook (Microsoft Graph)</h4>
@@ -146,6 +210,49 @@ function SettingsPage() {
 
             <p className="mb-0 text-muted">
                 Required Microsoft Graph delegated permission: Mail.Read.
+            </p>
+
+            <hr className="my-4" />
+
+            <Form onSubmit={saveGoogleConfig} className="mb-4">
+                <h4 className="mb-3">Google Calendar</h4>
+
+                <Form.Group className="mb-3" controlId="googleClientId">
+                    <Form.Label>OAuth Client ID</Form.Label>
+                    <Form.Control
+                        type="text"
+                        value={googleClientId}
+                        onChange={(event) => setGoogleClientId(event.target.value)}
+                        placeholder="Google OAuth Web client ID"
+                    />
+                    <Form.Text className="text-muted">
+                        Enable Google Calendar API and add this site origin in Google Cloud OAuth settings.
+                    </Form.Text>
+                </Form.Group>
+
+                <Stack direction="horizontal" gap={2}>
+                    <Button type="submit" variant="secondary">Save Google Settings</Button>
+                    <Button
+                        type="button"
+                        variant="primary"
+                        onClick={handleGoogleConnect}
+                        disabled={isGoogleConnecting || !currentGoogleConfig.clientId}
+                    >
+                        {isGoogleConnecting ? 'Connecting...' : 'Connect Google'}
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="outline-danger"
+                        onClick={handleGoogleDisconnect}
+                        disabled={isGoogleConnecting || !storedGoogleAuth}
+                    >
+                        Disconnect
+                    </Button>
+                </Stack>
+            </Form>
+
+            <p className="mb-0 text-muted">
+                Required Google scope: calendar.readonly.
             </p>
         </Container>
     );
