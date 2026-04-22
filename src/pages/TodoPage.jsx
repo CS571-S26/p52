@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Container, Row, Col, Card, Button } from 'react-bootstrap';
 import useLocalStorage from '../hooks/useLocalStorage';
 import CreateTaskModal from '../components/CreateTaskModal';
+import trashcanIcon from '../sources/trashcan.png';
 
 function TodoPage() {
     const [tasks, setTasks] = useLocalStorage('tasks', []);
@@ -36,6 +37,24 @@ function TodoPage() {
         setTasks(tasks.filter(task => task.id !== taskId));
     };
 
+    const isUncategorized = (categoryName) =>
+        categoryName.trim().toLowerCase() === 'uncategorized';
+
+    const deleteCategory = (categoryId) => {
+        const categoryToDelete = categories.find((category) => category.id === categoryId);
+        if (!categoryToDelete || isUncategorized(categoryToDelete.name)) {
+            return;
+        }
+
+        const confirmed = window.confirm('Delete this category and all associated tasks?');
+        if (!confirmed) {
+            return;
+        }
+
+        setCategories(categories.filter((category) => category.id !== categoryId));
+        setTasks(tasks.filter((task) => task.categoryId !== categoryId));
+    };
+
     return (
         <Container fluid className="mt-4">
             <div className="d-flex justify-content-between align-items-center mb-4">
@@ -47,7 +66,20 @@ function TodoPage() {
                     <Col key={category.id}>
                         <Card className="h-100">
                             <Card.Body className="d-flex flex-column">
-                                <Card.Title>{category.name}</Card.Title>
+                                <Card.Title className="d-flex justify-content-between align-items-center">
+                                    <span>{category.name}</span>
+                                    {!isUncategorized(category.name) && (
+                                        <Button
+                                            variant="link"
+                                            className="p-0 border-0"
+                                            onClick={() => deleteCategory(category.id)}
+                                            aria-label={`Delete ${category.name} category`}
+                                            title="Delete category"
+                                        >
+                                            <img src={trashcanIcon} alt="Delete" width="16" height="16" />
+                                        </Button>
+                                    )}
+                                </Card.Title>
                                 <div className="flex-grow-1">
                                     {tasks
                                         .filter((task) => task.categoryId === category.id)
