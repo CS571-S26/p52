@@ -27,9 +27,15 @@ const formatReceived = (isoDate) => {
 };
 
 function OutlookWidget() {
+    const envOutlookClientId = (import.meta.env.VITE_OUTLOOK_CLIENT_ID || '').trim();
+    const envOutlookTenantId = (import.meta.env.VITE_OUTLOOK_TENANT_ID || 'common').trim();
+    const envOutlookRedirectUri =
+        (import.meta.env.VITE_OUTLOOK_REDIRECT_URI || `${window.location.origin}${window.location.pathname}`).trim();
+
     const [outlookConfig] = useLocalStorage('outlookConfig', {
-        clientId: '',
-        tenantId: 'common',
+        clientId: envOutlookClientId,
+        tenantId: envOutlookTenantId || 'common',
+        redirectUri: envOutlookRedirectUri,
     });
     const [messages, setMessages] = useState([]);
     const [loading, setLoading] = useState(false);

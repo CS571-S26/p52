@@ -34,8 +34,10 @@ const formatEventDate = (event) => {
 };
 
 function CalendarWidget() {
+    const envGoogleClientId = (import.meta.env.VITE_GOOGLE_CLIENT_ID || '').trim();
+
     const [googleConfig] = useLocalStorage('googleConfig', {
-        clientId: '',
+        clientId: envGoogleClientId,
     });
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(false);

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Container, Form, Button, Alert, Stack } from 'react-bootstrap';
 import useLocalStorage from '../hooks/useLocalStorage';
 import {
@@ -14,23 +14,30 @@ import {
 
 function SettingsPage() {
     const detectedRedirectUri = `${window.location.origin}${window.location.pathname}`;
+    const envOutlookClientId = (import.meta.env.VITE_OUTLOOK_CLIENT_ID || '').trim();
+    const envOutlookTenantId = (import.meta.env.VITE_OUTLOOK_TENANT_ID || 'common').trim();
+    const envOutlookRedirectUri =
+        (import.meta.env.VITE_OUTLOOK_REDIRECT_URI || detectedRedirectUri).trim();
+    const envGoogleClientId = (import.meta.env.VITE_GOOGLE_CLIENT_ID || '').trim();
 
     const [outlookConfig, setOutlookConfig] = useLocalStorage('outlookConfig', {
-        clientId: '',
-        tenantId: 'common',
-        redirectUri: detectedRedirectUri,
+        clientId: envOutlookClientId,
+        tenantId: envOutlookTenantId || 'common',
+        redirectUri: envOutlookRedirectUri || detectedRedirectUri,
     });
-    const [clientId, setClientId] = useState(outlookConfig.clientId || '');
-    const [tenantId, setTenantId] = useState(outlookConfig.tenantId || 'common');
-    const [redirectUri, setRedirectUri] = useState(outlookConfig.redirectUri || detectedRedirectUri);
+    const [clientId, setClientId] = useState(outlookConfig.clientId || envOutlookClientId);
+    const [tenantId, setTenantId] = useState(outlookConfig.tenantId || envOutlookTenantId || 'common');
+    const [redirectUri, setRedirectUri] = useState(
+        outlookConfig.redirectUri || envOutlookRedirectUri || detectedRedirectUri
+    );
     const [saved, setSaved] = useState(false);
     const [authStatus, setAuthStatus] = useState('');
     const [error, setError] = useState('');
     const [isConnecting, setIsConnecting] = useState(false);
     const [googleConfig, setGoogleConfig] = useLocalStorage('googleConfig', {
-        clientId: '',
+        clientId: envGoogleClientId,
     });
-    const [googleClientId, setGoogleClientId] = useState(googleConfig.clientId || '');
+    const [googleClientId, setGoogleClientId] = useState(googleConfig.clientId || envGoogleClientId);
     const [googleSaved, setGoogleSaved] = useState(false);
     const [googleAuthStatus, setGoogleAuthStatus] = useState('');
     const [googleError, setGoogleError] = useState('');
@@ -47,6 +54,30 @@ function SettingsPage() {
     const currentGoogleConfig = {
         clientId: googleClientId.trim(),
     };
+
+    useEffect(() => {
+        if (!window.localStorage.getItem('outlookConfig')) {
+            setOutlookConfig({
+                clientId: envOutlookClientId,
+                tenantId: envOutlookTenantId || 'common',
+                redirectUri: envOutlookRedirectUri || detectedRedirectUri,
+            });
+        }
+
+        if (!window.localStorage.getItem('googleConfig')) {
+            setGoogleConfig({
+                clientId: envGoogleClientId,
+            });
+        }
+    }, [
+        detectedRedirectUri,
+        envGoogleClientId,
+        envOutlookClientId,
+        envOutlookRedirectUri,
+        envOutlookTenantId,
+        setGoogleConfig,
+        setOutlookConfig,
+    ]);
 
     const saveOutlookConfig = (event) => {
         event.preventDefault();
