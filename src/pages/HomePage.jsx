@@ -10,15 +10,23 @@ function HomePage() {
         <Container fluid className="mt-4 h-100">
             <Row className="h-100">
                 <Col md={4} className="d-flex flex-column">
-                    <TodoWidget />
+                    <div className="flex-grow-1 d-flex">
+                        <TodoWidget />
+                    </div>
                 </Col>
                 <Col md={4} className="d-flex flex-column">
-                    <NotesWidget />
+                    <div className="flex-grow-1 d-flex">
+                        <NotesWidget />
+                    </div>
                 </Col>
                 <Col md={4} className="d-flex flex-column">
-                    <div className="d-grid gap-3">
-                        <CalendarWidget />
-                        <OutlookWidget />
+                    <div className="d-flex flex-column gap-3 h-100">
+                        <div className="flex-fill d-flex">
+                            <CalendarWidget />
+                        </div>
+                        <div className="flex-fill d-flex">
+                            <OutlookWidget />
+                        </div>
                     </div>
                 </Col>
             </Row>

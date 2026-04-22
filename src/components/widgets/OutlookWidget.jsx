@@ -93,8 +93,8 @@ function OutlookWidget() {
     const hasAuth = Boolean(getStoredOutlookAuth());
 
     return (
-        <Card>
-            <Card.Body>
+        <Card className="h-100 w-100">
+            <Card.Body className="d-flex flex-column">
                 <div className="d-flex justify-content-between align-items-center mb-2">
                     <Card.Title className="mb-0">Outlook Inbox</Card.Title>
                     {!hasAuth ? <Link to="/settings">Configure</Link> : null}
@@ -122,7 +122,7 @@ function OutlookWidget() {
                 {error ? <Alert variant="warning" className="mb-2">{error}</Alert> : null}
 
                 {!loading && !error && messages.length > 0 ? (
-                    <ListGroup variant="flush">
+                    <ListGroup variant="flush" className="flex-grow-1 overflow-auto">
                         {messages.map((message) => (
                             <ListGroup.Item key={message.id} className="px-0">
                                 <div className="fw-semibold text-truncate" title={message.subject || '(No subject)'}>

@@ -1,16 +1,68 @@
 import React from 'react';
-import { Card } from 'react-bootstrap';
+import { Card, ListGroup } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
+import useLocalStorage from '../../hooks/useLocalStorage';
+
+const getDueTimestamp = (task) => {
+    if (!task.dueDate) {
+        return Number.POSITIVE_INFINITY;
+    }
+
+    const parsed = new Date(task.dueDate).getTime();
+    return Number.isNaN(parsed) ? Number.POSITIVE_INFINITY : parsed;
+};
+
+const formatDueDate = (task) => {
+    if (!task.dueDate) {
+        return 'No due date';
+    }
+
+    const parsed = new Date(task.dueDate);
+    if (Number.isNaN(parsed.getTime())) {
+        return 'No due date';
+    }
+
+    return parsed.toLocaleDateString(undefined, {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+    });
+};
 
 function TodoWidget() {
+    const [tasks] = useLocalStorage('tasks', []);
+    const [categories] = useLocalStorage('categories', []);
+
+    const categoryById = new Map(categories.map((category) => [category.id, category.name]));
+    const sortedTasks = [...tasks].sort((a, b) => getDueTimestamp(a) - getDueTimestamp(b));
+
     return (
-        <Card>
-            <Card.Body>
+        <Card className="h-100 w-100">
+            <Card.Body className="d-flex flex-column">
                 <Card.Title>
                     <Link to="/todos">To-Do List</Link>
                 </Card.Title>
-                {/* Task list will go here */}
-				
+
+                {sortedTasks.length === 0 ? (
+                    <Card.Text className="text-muted mb-0">No tasks yet.</Card.Text>
+                ) : (
+                    <ListGroup variant="flush" className="flex-grow-1 overflow-auto">
+                        {sortedTasks.map((task) => (
+                            <ListGroup.Item key={task.id} className="px-0">
+                                <div className="fw-semibold text-truncate" title={task.title || 'Untitled task'}>
+                                    {task.title || 'Untitled task'}
+                                </div>
+                                <small className="text-muted d-block">Due {formatDueDate(task)}</small>
+                                <small className="text-muted d-block text-truncate" title={task.description || ''}>
+                                    {(task.description || '').slice(0, 80) || 'No description'}
+                                </small>
+                                <small className="text-muted d-block">
+                                    {categoryById.get(task.categoryId) || 'Uncategorized'}
+                                </small>
+                            </ListGroup.Item>
+                        ))}
+                    </ListGroup>
+                )}
             </Card.Body>
         </Card>
     );

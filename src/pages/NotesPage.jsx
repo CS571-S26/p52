@@ -8,8 +8,10 @@ function NotesPage() {
     const navigate = useNavigate();
 
     const createNote = () => {
+        const now = new Date().toISOString();
         const newNote = {
             id: Date.now(),
+            createdAt: now,
             title: 'New Note',
             content: '',
         };

@@ -87,8 +87,8 @@ function CalendarWidget() {
     }, [loadEvents]);
 
     return (
-        <Card>
-            <Card.Body>
+        <Card className="h-100 w-100">
+            <Card.Body className="d-flex flex-column">
                 <div className="d-flex justify-content-between align-items-center mb-2">
                     <Card.Title className="mb-0">Google Calendar</Card.Title>
                     {!hasAuth ? <Link to="/settings">Configure</Link> : null}
@@ -116,7 +116,7 @@ function CalendarWidget() {
                 {error ? <Alert variant="warning" className="mb-2">{error}</Alert> : null}
 
                 {!loading && !error && events.length > 0 ? (
-                    <ListGroup variant="flush" style={{ maxHeight: '220px', overflowY: 'auto' }}>
+                    <ListGroup variant="flush" className="flex-grow-1 overflow-auto">
                         {events.map((event) => (
                             <ListGroup.Item key={event.id} className="px-0">
                                 <div className="fw-semibold text-truncate" title={event.summary || '(No title)'}>
