@@ -32,6 +32,7 @@ const createMsalInstance = async (config) => {
             clientId,
             authority: `https://login.microsoftonline.com/${tenantId}`,
             redirectUri,
+            navigateToLoginRequestUrl: false,
         },
         cache: {
             cacheLocation: 'localStorage',
