@@ -8,12 +8,16 @@ import {
 } from '../services/outlookAuth';
 
 function SettingsPage() {
+    const detectedRedirectUri = `${window.location.origin}${window.location.pathname}`;
+
     const [outlookConfig, setOutlookConfig] = useLocalStorage('outlookConfig', {
         clientId: '',
         tenantId: 'common',
+        redirectUri: detectedRedirectUri,
     });
     const [clientId, setClientId] = useState(outlookConfig.clientId || '');
     const [tenantId, setTenantId] = useState(outlookConfig.tenantId || 'common');
+    const [redirectUri, setRedirectUri] = useState(outlookConfig.redirectUri || detectedRedirectUri);
     const [saved, setSaved] = useState(false);
     const [authStatus, setAuthStatus] = useState('');
     const [error, setError] = useState('');
@@ -24,6 +28,7 @@ function SettingsPage() {
     const currentConfig = {
         clientId: clientId.trim(),
         tenantId: tenantId.trim() || 'common',
+        redirectUri: redirectUri.trim() || detectedRedirectUri,
     };
 
     const saveOutlookConfig = (event) => {
@@ -104,6 +109,19 @@ function SettingsPage() {
                     />
                     <Form.Text className="text-muted">
                         Use common for multi-tenant sign-in, or provide your tenant GUID.
+                    </Form.Text>
+                </Form.Group>
+
+                <Form.Group className="mb-3" controlId="outlookRedirectUri">
+                    <Form.Label>Redirect URI</Form.Label>
+                    <Form.Control
+                        type="url"
+                        value={redirectUri}
+                        onChange={(event) => setRedirectUri(event.target.value)}
+                        placeholder={detectedRedirectUri}
+                    />
+                    <Form.Text className="text-muted">
+                        Add this exact URI in Azure App Registration Authentication settings.
                     </Form.Text>
                 </Form.Group>
 

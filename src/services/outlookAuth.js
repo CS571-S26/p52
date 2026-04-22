@@ -19,6 +19,8 @@ const isTokenValid = (expiresOnIso) => {
 const createMsalInstance = async (config) => {
     const clientId = (config?.clientId || '').trim();
     const tenantId = (config?.tenantId || '').trim();
+    const redirectUri =
+        (config?.redirectUri || '').trim() || `${window.location.origin}${window.location.pathname}`;
 
     if (!clientId || !tenantId) {
         throw new Error('Missing Outlook OAuth settings');
@@ -28,7 +30,7 @@ const createMsalInstance = async (config) => {
         auth: {
             clientId,
             authority: `https://login.microsoftonline.com/${tenantId}`,
-            redirectUri: window.location.origin,
+            redirectUri,
         },
         cache: {
             cacheLocation: 'localStorage',
