@@ -34,6 +34,8 @@ const formatEventDate = (event) => {
 };
 
 function CalendarWidget() {
+    const EVENTS_LIST_MAX_HEIGHT = '14rem';
+
     const envGoogleClientId = (import.meta.env.VITE_GOOGLE_CLIENT_ID || '').trim();
 
     const [googleConfig] = useLocalStorage('googleConfig', {
@@ -116,7 +118,11 @@ function CalendarWidget() {
                 {error ? <Alert variant="warning" className="mb-2">{error}</Alert> : null}
 
                 {!loading && !error && events.length > 0 ? (
-                    <ListGroup variant="flush" className="flex-grow-1 overflow-auto">
+                    <ListGroup
+                        variant="flush"
+                        className="flex-grow-1 overflow-auto"
+                        style={{ maxHeight: EVENTS_LIST_MAX_HEIGHT }}
+                    >
                         {events.map((event) => (
                             <ListGroup.Item key={event.id} className="px-0">
                                 <div className="fw-semibold text-truncate" title={event.summary || '(No title)'}>
