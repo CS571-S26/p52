@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button, Container, Row, Col, Card } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
+import ReactMarkdown from 'react-markdown';
 import useLocalStorage from '../hooks/useLocalStorage';
 
 function NotesPage() {
@@ -20,7 +21,7 @@ function NotesPage() {
     };
 
     return (
-        <Container>
+        <Container fluid className="py-4 h-100 flex-grow-1 overflow-auto">
             <h1>Notes</h1>
             <Button onClick={createNote}>New Note</Button>
             <Row>
@@ -31,7 +32,11 @@ function NotesPage() {
                                 <Card.Title>
                                     <Link to={`/notes/${note.id}`}>{note.title}</Link>
                                 </Card.Title>
-                                <Card.Text>{note.content.substring(0, 100)}...</Card.Text>
+                                <Card.Text className="note-preview-text">
+                                    <ReactMarkdown>
+                                        {(typeof note.content === 'string' ? note.content : '').slice(0, 100) || 'No content yet'}
+                                    </ReactMarkdown>
+                                </Card.Text>
                             </Card.Body>
                         </Card>
                     </Col>

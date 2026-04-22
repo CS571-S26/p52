@@ -14,7 +14,7 @@ function App() {
         <div className="d-flex flex-column vh-100">
             <NavigationBar />
 
-            <main className="flex-grow-1">
+            <main className="flex-grow-1 d-flex flex-column min-vh-0">
                 <Routes>
                     <Route path="/" element={<HomePage />} />
                     <Route path="/todos" element={<TodoPage />} />

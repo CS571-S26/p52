@@ -108,7 +108,7 @@ function SettingsPage() {
     };
 
     return (
-        <Container className="py-4">
+        <Container fluid className="py-4 h-100 flex-grow-1 overflow-auto">
             <h1>Settings</h1>
             <p className="text-muted mb-4">
                 Connect your accounts to enable dashboard integrations.

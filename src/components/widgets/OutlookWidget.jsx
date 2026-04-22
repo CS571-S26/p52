@@ -94,7 +94,7 @@ function OutlookWidget() {
 
     return (
         <Card className="h-100 w-100">
-            <Card.Body className="d-flex flex-column">
+            <Card.Body className="d-flex flex-column min-vh-0">
                 <div className="d-flex justify-content-between align-items-center mb-2">
                     <Card.Title className="mb-0">Outlook Inbox</Card.Title>
                     {!hasAuth ? <Link to="/settings">Configure</Link> : null}

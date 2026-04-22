@@ -1,5 +1,6 @@
 #root {
-  max-width: 1280px;
+  width: 100%;
+  max-width: 100%;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
@@ -35,6 +36,123 @@
 
 .card {
   padding: 2em;
+}
+
+.category-scroll-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 0.5rem;
+}
+
+.category-scroll-track {
+  display: flex;
+  gap: 1rem;
+  scroll-snap-type: x proximity;
+}
+
+.category-card-wrapper {
+  flex: 0 0 min(320px, 100%);
+  min-width: 280px;
+  scroll-snap-align: start;
+}
+
+.category-task-list {
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.task-card {
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+
+.task-card:hover {
+  background-color: rgba(255, 193, 7, 0.08);
+}
+
+.task-completed {
+  background-color: rgba(255, 243, 205, 0.8);
+  border-color: rgba(255, 193, 7, 0.5);
+}
+
+.task-completed .card-body {
+  color: #794c00;
+}
+
+.task-completed strong,
+.task-completed div {
+  text-decoration: line-through;
+}
+
+.task-completed strong,
+.task-completed div {
+  text-decoration: line-through;
+}
+
+.category-task-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.category-task-list::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 999px;
+}
+
+.category-task-list::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.note-markdown-preview {
+  min-height: 0;
+  white-space: pre-wrap;
+}
+
+.note-markdown-preview,
+.note-editor-textarea {
+  min-height: 0;
+}
+
+.note-editor-textarea {
+  overflow-y: auto;
+}
+
+.note-preview-text {
+  max-height: 4.5rem;
+  overflow: hidden;
+}
+
+.note-preview-widget {
+  color: rgba(0, 0, 0, 0.7);
+  min-height: 14rem;
+  max-height: min(50vh, 26rem);
+  overflow: hidden;
+}
+
+.note-carousel {
+  min-height: 0;
+}
+
+.card-preview-scroll {
+  overflow: hidden;
+  transition: background-color 150ms ease;
+}
+
+.card-preview-scroll:hover {
+  overflow-y: auto;
+  background-color: rgba(248, 249, 250, 0.9);
+}
+
+.card-preview-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.card-preview-scroll::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 999px;
+}
+
+.card-preview-scroll::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.04);
 }
 
 .read-the-docs {

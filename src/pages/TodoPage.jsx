@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Container, Row, Col, Card, Button } from 'react-bootstrap';
+import { Container, Card, Button } from 'react-bootstrap';
 import useLocalStorage from '../hooks/useLocalStorage';
 import CreateTaskModal from '../components/CreateTaskModal';
 import trashcanIcon from '../sources/trashcan.png';
@@ -37,6 +37,16 @@ function TodoPage() {
         setTasks(tasks.filter(task => task.id !== taskId));
     };
 
+    const toggleTaskCompletion = (taskId) => {
+        setTasks(
+            tasks.map((task) =>
+                task.id === taskId
+                    ? { ...task, completed: !task.completed }
+                    : task
+            )
+        );
+    };
+
     const isUncategorized = (categoryName) =>
         categoryName.trim().toLowerCase() === 'uncategorized';
 
@@ -56,66 +66,77 @@ function TodoPage() {
     };
 
     return (
-        <Container fluid className="mt-4">
+        <Container fluid className="mt-4 h-100 flex-grow-1 overflow-auto">
             <div className="d-flex justify-content-between align-items-center mb-4">
                 <h1>To-Dos</h1>
                 <Button onClick={createCategory}>New Category</Button>
             </div>
-            <Row>
-                {categories.map((category) => (
-                    <Col key={category.id}>
-                        <Card className="h-100">
-                            <Card.Body className="d-flex flex-column">
-                                <Card.Title className="d-flex justify-content-between align-items-center">
-                                    <span>{category.name}</span>
-                                    {!isUncategorized(category.name) && (
-                                        <Button
-                                            variant="link"
-                                            className="p-0 border-0"
-                                            onClick={() => deleteCategory(category.id)}
-                                            aria-label={`Delete ${category.name} category`}
-                                            title="Delete category"
-                                        >
-                                            <img src={trashcanIcon} alt="Delete" width="16" height="16" />
-                                        </Button>
-                                    )}
-                                </Card.Title>
-                                <div className="flex-grow-1">
-                                    {tasks
-                                        .filter((task) => task.categoryId === category.id)
-                                        .map((task) => (
-                                            <Card key={task.id} className="mb-2">
-                                                <Card.Body className="d-flex justify-content-between align-items-center">
-                                                    <div>
-                                                        <strong>{task.title}:</strong> {task.description}
-                                                    </div>
-                                                    <Button 
-                                                        variant="outline-success" 
-                                                        onClick={() => deleteTask(task.id)}
-                                                        style={{
-                                                            width: '30px',
-                                                            height: '30px',
-                                                            borderRadius: '50%',
-                                                            padding: '0',
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            justifyContent: 'center'
-                                                        }}
-                                                    >
-                                                        ✓
-                                                    </Button>
-                                                </Card.Body>
-                                            </Card>
-                                        ))}
-                                </div>
-                                <Button variant="primary" onClick={() => handleShowModal(category.id)}>
-                                    + Add Task
-                                </Button>
-                            </Card.Body>
-                        </Card>
-                    </Col>
-                ))}
-            </Row>
+            <div className="category-scroll-container mb-4">
+                <div className="category-scroll-track">
+                    {categories.map((category) => (
+                        <div key={category.id} className="category-card-wrapper">
+                            <Card className="h-100">
+                                <Card.Body className="d-flex flex-column">
+                                    <Card.Title className="d-flex justify-content-between align-items-center">
+                                        <span>{category.name}</span>
+                                        {!isUncategorized(category.name) && (
+                                            <Button
+                                                variant="link"
+                                                className="p-0 border-0"
+                                                onClick={() => deleteCategory(category.id)}
+                                                aria-label={`Delete ${category.name} category`}
+                                                title="Delete category"
+                                            >
+                                                <img src={trashcanIcon} alt="Delete" width="16" height="16" />
+                                            </Button>
+                                        )}
+                                    </Card.Title>
+                                    <div className="category-task-list flex-grow-1 mb-3">
+                                        {tasks
+                                            .filter((task) => task.categoryId === category.id)
+                                            .map((task) => (
+                                                <Card
+                                                    key={task.id}
+                                                    className={`mb-2 task-card ${task.completed ? 'task-completed' : ''}`}
+                                                >
+                                                    <Card.Body className="d-flex justify-content-between align-items-center gap-2">
+                                                        <div>
+                                                            <strong>{task.title}:</strong> {task.description}
+                                                        </div>
+                                                        <div className="d-flex gap-2">
+                                                            <Button
+                                                                variant={task.completed ? 'warning' : 'outline-warning'}
+                                                                size="sm"
+                                                                onClick={() => toggleTaskCompletion(task.id)}
+                                                                aria-label={`Toggle complete for ${task.title}`}
+                                                            >
+                                                                ✓
+                                                            </Button>
+                                                            <Button
+                                                                variant="outline-danger"
+                                                                size="sm"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    deleteTask(task.id);
+                                                                }}
+                                                                aria-label={`Delete task ${task.title}`}
+                                                            >
+                                                                ×
+                                                            </Button>
+                                                        </div>
+                                                    </Card.Body>
+                                                </Card>
+                                            ))}
+                                    </div>
+                                    <Button variant="primary" onClick={() => handleShowModal(category.id)}>
+                                        + Add Task
+                                    </Button>
+                                </Card.Body>
+                            </Card>
+                        </div>
+                    ))}
+                </div>
+            </div>
 
             <CreateTaskModal
                 show={showModalForCategory !== null}
