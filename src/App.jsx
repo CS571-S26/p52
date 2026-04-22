@@ -1,4 +1,5 @@
 import './App.css';
+import { useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import NavigationBar from './components/NavigationBar';
 import Footer from './components/Footer';
@@ -7,9 +8,32 @@ import TodoPage from './pages/TodoPage';
 import NotesPage from './pages/NotesPage';
 import NoteEditor from './pages/NoteEditor';
 import SettingsPage from './pages/SettingsPage';
+import { finalizeOutlookRedirect } from './services/outlookAuth';
 
 
 function App() {
+    useEffect(() => {
+        const configRaw = window.localStorage.getItem('outlookConfig');
+        if (!configRaw) {
+            return;
+        }
+
+        let config;
+        try {
+            config = JSON.parse(configRaw);
+        } catch {
+            return;
+        }
+
+        if (!config?.clientId || !config?.tenantId) {
+            return;
+        }
+
+        finalizeOutlookRedirect(config).catch(() => {
+            // Ignore here; Settings/Widget surfaces actionable auth errors.
+        });
+    }, []);
+
     return (
         <div className="d-flex flex-column vh-100">
             <NavigationBar />
