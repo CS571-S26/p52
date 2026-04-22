@@ -2,6 +2,7 @@ import { PublicClientApplication } from '@azure/msal-browser';
 
 const OUTLOOK_AUTH_KEY = 'outlookAuth';
 const OUTLOOK_SCOPES = ['Mail.Read', 'User.Read'];
+const NO_TOKEN_REQUEST_CACHE_ERROR = 'no_token_request_cache_error';
 
 const isTokenValid = (expiresOnIso) => {
     if (!expiresOnIso) {
@@ -39,8 +40,27 @@ const createMsalInstance = async (config) => {
     });
 
     await msal.initialize();
-    await msal.handleRedirectPromise();
     return msal;
+};
+
+export const finalizeOutlookRedirect = async (config) => {
+    const msal = await createMsalInstance(config);
+
+    try {
+        const result = await msal.handleRedirectPromise();
+        if (result?.accessToken) {
+            const stored = setStoredOutlookAuth(result);
+            return { completed: true, stored };
+        }
+
+        return { completed: false, stored: null };
+    } catch (error) {
+        if (error?.errorCode === NO_TOKEN_REQUEST_CACHE_ERROR) {
+            return { completed: false, stored: null };
+        }
+
+        throw error;
+    }
 };
 
 export const getStoredOutlookAuth = () => {
@@ -73,18 +93,13 @@ export const clearOutlookAuth = () => {
 
 export const connectOutlook = async (config) => {
     const msal = await createMsalInstance(config);
-    try {
-        const tokenResponse = await msal.acquireTokenPopup({
-            scopes: OUTLOOK_SCOPES,
-            prompt: 'select_account',
-        });
-        return setStoredOutlookAuth(tokenResponse);
-    } catch (error) {
-        if (error?.errorCode === 'interaction_in_progress') {
-            throw new Error('Authentication is already in progress. Close any auth popup and try again.');
-        }
-        throw error;
-    }
+
+    await msal.acquireTokenRedirect({
+        scopes: OUTLOOK_SCOPES,
+        prompt: 'select_account',
+    });
+
+    return null;
 };
 
 export const disconnectOutlook = async (config) => {

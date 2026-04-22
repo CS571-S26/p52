@@ -1,13 +1,16 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Container, Form, Button, Alert, Stack } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
 import useLocalStorage from '../hooks/useLocalStorage';
 import {
     connectOutlook,
     disconnectOutlook,
+    finalizeOutlookRedirect,
     getStoredOutlookAuth,
 } from '../services/outlookAuth';
 
 function SettingsPage() {
+    const navigate = useNavigate();
     const detectedRedirectUri = `${window.location.origin}${window.location.pathname}`;
 
     const [outlookConfig, setOutlookConfig] = useLocalStorage('outlookConfig', {
@@ -38,6 +41,40 @@ function SettingsPage() {
         setError('');
     };
 
+    useEffect(() => {
+        let active = true;
+
+        const completeRedirect = async () => {
+            if (!outlookConfig.clientId) {
+                return;
+            }
+
+            try {
+                const result = await finalizeOutlookRedirect(outlookConfig);
+                if (!active || !result.completed || !result.stored) {
+                    return;
+                }
+
+                const label =
+                    result.stored.account.name || result.stored.account.username || 'Outlook account';
+                setAuthStatus(`Connected as ${label}`);
+                setError('');
+                navigate('/');
+            } catch (err) {
+                if (!active) {
+                    return;
+                }
+                setError(err.message || 'Unable to finalize Outlook sign-in');
+            }
+        };
+
+        completeRedirect();
+
+        return () => {
+            active = false;
+        };
+    }, [navigate, outlookConfig]);
+
     const handleConnect = async () => {
         setSaved(false);
         setAuthStatus('');
@@ -46,12 +83,10 @@ function SettingsPage() {
 
         try {
             setOutlookConfig(currentConfig);
-            const auth = await connectOutlook(currentConfig);
-            const label = auth.account.name || auth.account.username || 'Outlook account';
-            setAuthStatus(`Connected as ${label}`);
+            setAuthStatus('Redirecting to Microsoft sign-in...');
+            await connectOutlook(currentConfig);
         } catch (err) {
             setError(err.message || 'Outlook connection failed');
-        } finally {
             setIsConnecting(false);
         }
     };
