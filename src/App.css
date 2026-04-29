@@ -108,13 +108,9 @@
   color: #794c00;
 }
 
-.task-completed strong,
-.task-completed div {
-  text-decoration: line-through;
-}
-
-.task-completed strong,
-.task-completed div {
+.task-completed .task-content,
+.task-completed .task-content strong,
+.task-completed .task-description {
   text-decoration: line-through;
 }
 

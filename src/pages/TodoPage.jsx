@@ -229,17 +229,22 @@ function TodoPage() {
 
                                                         {/* Clickable Content */}
                                                         <div
-                                                            className="flex-grow-1"
+                                                            className="flex-grow-1 task-content"
                                                             style={{ cursor: 'pointer' }}
                                                             onClick={() => openEditModal(task)}
                                                         >
-                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                            <div className="d-flex align-items-center gap-2">
                                                                 <span
                                                                     className={`urgency-indicator ${getUrgencyColor(task.urgency)}`}
                                                                     title={task.urgency || 'medium'}
                                                                 />
-                                                                <strong>{task.title}:</strong> {task.description}
+                                                                <strong>{task.title}</strong>
                                                             </div>
+                                                            {task.description ? (
+                                                                <div className="mt-1 text-muted task-description">
+                                                                    {task.description}
+                                                                </div>
+                                                            ) : null}
                                                         </div>
 
                                                         {/* Action Buttons */}
@@ -247,7 +252,10 @@ function TodoPage() {
                                                             <Button
                                                                 variant={task.completed ? 'warning' : 'outline-warning'}
                                                                 size="sm"
-                                                                onClick={() => toggleTaskCompletion(task.id)}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    toggleTaskCompletion(task.id);
+                                                                }}
                                                                 aria-label={`Toggle complete for ${task.title}`}
                                                             >
                                                                 ✓
