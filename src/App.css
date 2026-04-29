@@ -44,25 +44,49 @@
 }
 
 .category-scroll-container {
+  display: flex;
+  align-items: stretch;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   padding-bottom: 0.5rem;
+  /* allow this container to grow within a flex column layout */
+  flex: 1 1 auto;
+  height: 100%;
 }
 
 .category-scroll-track {
   display: flex;
   gap: 1rem;
   scroll-snap-type: x proximity;
+  align-items: stretch;
+  height: 100%;
 }
 
 .category-card-wrapper {
   flex: 0 0 min(320px, 100%);
   min-width: 280px;
   scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* Only stretch the outer card (direct child of the wrapper). */
+.category-card-wrapper > .card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* Ensure individual task cards don't stretch to fill the column. */
+.category-card-wrapper .task-card {
+  flex: 0 0 auto;
+  height: auto;
 }
 
 .category-task-list {
-  max-height: 300px;
+  /* let the tasks list take remaining vertical space inside the card */
+  flex: 1 1 auto;
   overflow-y: auto;
   padding-right: 0.25rem;
 }

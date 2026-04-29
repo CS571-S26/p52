@@ -130,12 +130,12 @@ function TodoPage() {
     };
 
     return (
-        <Container fluid className="mt-4 h-100 flex-grow-1 overflow-auto">
+        <Container fluid className="mt-4 h-100 flex-grow-1 overflow-hidden d-flex flex-column">
             <div className="d-flex justify-content-between align-items-center mb-4">
                 <h1>To-Dos</h1>
                 <Button onClick={createCategory}>New Category</Button>
             </div>
-            <div className="category-scroll-container mb-4">
+            <div className="category-scroll-container flex-grow-1 overflow-auto">
                 <div className="category-scroll-track">
                     {categories.map((category) => (
                         <div key={category.id} className="category-card-wrapper">
