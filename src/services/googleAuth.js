@@ -1,5 +1,5 @@
 const GOOGLE_AUTH_KEY = 'googleCalendarAuth';
-const GOOGLE_SCOPES = 'https://www.googleapis.com/auth/calendar.readonly';
+const GOOGLE_SCOPES = 'https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly';
 const GOOGLE_IDENTITY_SCRIPT = 'https://accounts.google.com/gsi/client';
 
 let googleScriptPromise;
@@ -90,6 +90,52 @@ const requestAccessToken = async (config, promptMode) => {
 
         tokenClient.requestAccessToken();
     });
+};
+
+export const createGoogleCalendarEvent = async (config, task) => {
+    const accessToken = await getValidGoogleAccessToken(config);
+    const description = task.description || '';
+    const summary = task.title || 'Untitled task';
+
+    let start;
+    let end;
+
+    if (task.dueDate) {
+        const due = new Date(task.dueDate);
+        const endDate = new Date(due);
+        endDate.setDate(endDate.getDate() + 1);
+        const dueDateString = due.toISOString().slice(0, 10);
+        const endDateString = endDate.toISOString().slice(0, 10);
+
+        start = { date: dueDateString };
+        end = { date: endDateString };
+    } else {
+        const startDate = new Date();
+        const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
+        start = { dateTime: startDate.toISOString() };
+        end = { dateTime: endDate.toISOString() };
+    }
+
+    const response = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            summary,
+            description,
+            start,
+            end,
+        }),
+    });
+
+    if (!response.ok) {
+        const errorBody = await response.text().catch(() => '');
+        throw new Error(`Google Calendar create event failed (${response.status}) ${errorBody}`);
+    }
+
+    return await response.json();
 };
 
 export const getStoredGoogleAuth = () => {

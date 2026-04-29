@@ -29,6 +29,19 @@ const formatDueDate = (task) => {
     return `${mm}/${dd}`;
 };
 
+const getUrgencyColor = (urgency) => {
+    switch (urgency) {
+        case 'low':
+            return 'urgency-low';
+        case 'medium':
+            return 'urgency-medium';
+        case 'high':
+            return 'urgency-high';
+        default:
+            return 'urgency-medium';
+    }
+};
+
 function TodoWidget() {
     const [tasks, setTasks] = useLocalStorage('tasks', []);
     const [categories] = useLocalStorage('categories', []);
@@ -69,6 +82,7 @@ function TodoWidget() {
                             const categoryPart = categoryName === 'Uncategorized' ? '' : categoryName;
                             const desc = typeof task.description === 'string' ? task.description.trim() : '';
                             const descPart = desc ? desc.slice(0, 120) : '';
+                            const urgencyClass = getUrgencyColor(task.urgency);
 
                             return (
                                 <ListGroup.Item key={task.id} className="px-0 text-start d-flex justify-content-between align-items-start gap-2">
@@ -76,7 +90,12 @@ function TodoWidget() {
                                         <div
                                             className={`fw-bold text-truncate ${task.completed ? 'text-decoration-line-through text-muted' : ''}`}
                                             title={title}
+                                            style={{ display: 'flex', alignItems: 'center' }}
                                         >
+                                            <span
+                                                className={`urgency-indicator ${urgencyClass}`}
+                                                title={task.urgency || 'medium'}
+                                            />
                                             {title}
                                         </div>
                                         {(datePart || categoryPart || descPart) ? (

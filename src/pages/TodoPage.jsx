@@ -1,19 +1,28 @@
 import React, { useState } from 'react';
-import { Container, Card, Button, Modal, Form } from 'react-bootstrap';
+import { Container, Card, Button, Modal, Form, Alert } from 'react-bootstrap';
 import { MdDragHandle } from 'react-icons/md';
 import useLocalStorage from '../hooks/useLocalStorage';
 import CreateTaskModal from '../components/CreateTaskModal';
+import { getStoredGoogleAuth, createGoogleCalendarEvent } from '../services/googleAuth';
 import trashcanIcon from '../sources/trashcan.png';
 
 function TodoPage() {
+    const envGoogleClientId = (import.meta.env.VITE_GOOGLE_CLIENT_ID || '').trim();
     const [tasks, setTasks] = useLocalStorage('tasks', []);
     const [categories, setCategories] = useLocalStorage('categories', [{ id: 1, name: 'Uncategorized' }]);
+    const [googleConfig] = useLocalStorage('googleConfig', {
+        clientId: envGoogleClientId,
+    });
     const [showModalForCategory, setShowModalForCategory] = useState(null);
     const [editingTask, setEditingTask] = useState(null);
     const [editTitle, setEditTitle] = useState('');
     const [editDescription, setEditDescription] = useState('');
     const [editDueDate, setEditDueDate] = useState('');
     const [draggedTaskId, setDraggedTaskId] = useState(null);
+    const [taskStatus, setTaskStatus] = useState('');
+    const [taskError, setTaskError] = useState('');
+
+    const hasGoogleConnected = Boolean(getStoredGoogleAuth());
 
     const createCategory = () => {
         const categoryName = prompt('Enter new category name:');
@@ -26,8 +35,26 @@ function TodoPage() {
         }
     };
 
-    const handleSaveTask = (taskData) => {
-        const newTask = { ...taskData, categoryId: showModalForCategory };
+    const handleSaveTask = async (taskData) => {
+        setTaskStatus('');
+        setTaskError('');
+
+        const { syncToCalendar, ...taskFields } = taskData;
+        const newTask = { ...taskFields, categoryId: showModalForCategory };
+
+        if (syncToCalendar && hasGoogleConnected) {
+            try {
+                const event = await createGoogleCalendarEvent(googleConfig, newTask);
+                if (event?.id) {
+                    newTask.googleEventId = event.id;
+                    newTask.googleEventLink = event.htmlLink;
+                    setTaskStatus('Task saved and synced to Google Calendar.');
+                }
+            } catch (err) {
+                setTaskError(`Google Calendar sync failed: ${err.message || 'unknown error'}`);
+            }
+        }
+
         setTasks([...tasks, newTask]);
     };
 
@@ -55,6 +82,19 @@ function TodoPage() {
 
     const isUncategorized = (categoryName) =>
         categoryName.trim().toLowerCase() === 'uncategorized';
+
+    const getUrgencyColor = (urgency) => {
+        switch (urgency) {
+            case 'low':
+                return 'urgency-low';
+            case 'medium':
+                return 'urgency-medium';
+            case 'high':
+                return 'urgency-high';
+            default:
+                return 'urgency-medium';
+        }
+    };
 
     const deleteCategory = (categoryId) => {
         const categoryToDelete = categories.find((category) => category.id === categoryId);
@@ -132,7 +172,11 @@ function TodoPage() {
     return (
         <Container fluid className="mt-4 h-100 flex-grow-1 overflow-hidden d-flex flex-column">
             <div className="d-flex justify-content-between align-items-center mb-4">
-                <h1>To-Dos</h1>
+                <div>
+                    <h1>To-Dos</h1>
+                    {taskStatus ? <Alert variant="success">{taskStatus}</Alert> : null}
+                    {taskError ? <Alert variant="danger">{taskError}</Alert> : null}
+                </div>
                 <Button onClick={createCategory}>New Category</Button>
             </div>
             <div className="category-scroll-container flex-grow-1 overflow-auto">
@@ -189,7 +233,13 @@ function TodoPage() {
                                                             style={{ cursor: 'pointer' }}
                                                             onClick={() => openEditModal(task)}
                                                         >
-                                                            <strong>{task.title}:</strong> {task.description}
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                                <span
+                                                                    className={`urgency-indicator ${getUrgencyColor(task.urgency)}`}
+                                                                    title={task.urgency || 'medium'}
+                                                                />
+                                                                <strong>{task.title}:</strong> {task.description}
+                                                            </div>
                                                         </div>
 
                                                         {/* Action Buttons */}
@@ -232,6 +282,7 @@ function TodoPage() {
                 show={showModalForCategory !== null}
                 handleClose={handleCloseModal}
                 handleSave={handleSaveTask}
+                isGoogleConnected={hasGoogleConnected}
             />
 
             {/* Edit Task Modal */}

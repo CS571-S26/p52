@@ -1,11 +1,25 @@
 import React, { useState } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
 
-function CreateTaskModal({ show, handleClose, handleSave }) {
+function CreateTaskModal({ show, handleClose, handleSave, isGoogleConnected }) {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [dueDate, setDueDate] = useState('');
     const [urgency, setUrgency] = useState('medium');
+    const [syncToGoogle, setSyncToGoogle] = useState(false);
+
+    const resetForm = () => {
+        setTitle('');
+        setDescription('');
+        setDueDate('');
+        setUrgency('medium');
+        setSyncToGoogle(false);
+    };
+
+    const closeModal = () => {
+        resetForm();
+        handleClose();
+    };
 
     const onSave = () => {
         handleSave({
@@ -14,18 +28,14 @@ function CreateTaskModal({ show, handleClose, handleSave }) {
             description,
             dueDate,
             urgency,
-            completed: false
+            completed: false,
+            syncToCalendar: syncToGoogle,
         });
-        handleClose();
-        // Reset form
-        setTitle('');
-        setDescription('');
-        setDueDate('');
-        setUrgency('medium');
+        closeModal();
     };
 
     return (
-        <Modal show={show} onHide={handleClose}>
+        <Modal show={show} onHide={closeModal}>
             <Modal.Header closeButton>
                 <Modal.Title>Create New Task</Modal.Title>
             </Modal.Header>
@@ -67,10 +77,20 @@ function CreateTaskModal({ show, handleClose, handleSave }) {
                             <option value="high">High</option>
                         </Form.Select>
                     </Form.Group>
+                    <Form.Group className="mt-3">
+                        <Form.Check
+                            type="switch"
+                            id="sync-to-calendar-switch"
+                            label={isGoogleConnected ? 'Sync this task to Google Calendar' : 'Connect Google in Settings to sync this task'}
+                            checked={syncToGoogle}
+                            onChange={(e) => setSyncToGoogle(e.target.checked)}
+                            disabled={!isGoogleConnected}
+                        />
+                    </Form.Group>
                 </Form>
             </Modal.Body>
             <Modal.Footer>
-                <Button variant="secondary" onClick={handleClose}>
+                <Button variant="secondary" onClick={closeModal}>
                     Close
                 </Button>
                 <Button variant="primary" onClick={onSave}>

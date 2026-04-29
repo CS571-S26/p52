@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Container, Button, Alert, Stack } from 'react-bootstrap';
+import { Container, Button, Alert, Stack, Form } from 'react-bootstrap';
 import useLocalStorage from '../hooks/useLocalStorage';
 import {
     connectOutlook,
@@ -8,7 +8,7 @@ import {
     connectGoogleCalendar,
 } from '../services/googleAuth';
 
-function SettingsPage() {
+function SettingsPage({ theme, onThemeToggle }) {
     const detectedRedirectUri = `${window.location.origin}${window.location.pathname}`;
     const envOutlookClientId = (import.meta.env.VITE_OUTLOOK_CLIENT_ID || '').trim();
     const envOutlookTenantId = (import.meta.env.VITE_OUTLOOK_TENANT_ID || 'common').trim();
@@ -113,6 +113,16 @@ function SettingsPage() {
             <p className="text-muted mb-4">
                 Connect your accounts to enable dashboard integrations.
             </p>
+
+            <Form className="mb-4">
+                <Form.Check
+                    type="switch"
+                    id="theme-switch"
+                    label={theme === 'dark' ? 'Dark mode enabled' : 'Light mode enabled'}
+                    checked={theme === 'dark'}
+                    onChange={onThemeToggle}
+                />
+            </Form>
 
             {status ? <Alert variant="success">{status}</Alert> : null}
             {authStatus ? <Alert variant="success">{authStatus}</Alert> : null}

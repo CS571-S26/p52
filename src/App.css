@@ -36,11 +36,11 @@
 
 .card {
   padding: 1.25rem;
-  background: #ffffff;
-  color: inherit;
-  border: none;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
   border-radius: 0.6rem;
-  box-shadow: 0 6px 18px rgba(16, 24, 40, 0.06);
+  box-shadow: var(--card-shadow);
 }
 
 .category-scroll-container {
@@ -123,12 +123,12 @@
 }
 
 .category-task-list::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.15);
+  background: var(--scrollbar-thumb);
   border-radius: 999px;
 }
 
 .category-task-list::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.03);
+  background: var(--scrollbar-track);
 }
 
 .note-markdown-preview {
@@ -151,7 +151,7 @@
 }
 
 .note-preview-widget {
-  color: rgba(0, 0, 0, 0.7);
+  color: var(--text-muted);
   min-height: 14rem;
   max-height: min(50vh, 26rem);
   overflow: hidden;
@@ -168,7 +168,7 @@
 
 .card-preview-scroll:hover {
   overflow-y: auto;
-  background-color: rgba(248, 249, 250, 0.9);
+  background-color: var(--surface-muted);
 }
 
 .card-preview-scroll::-webkit-scrollbar {
@@ -176,16 +176,56 @@
 }
 
 .card-preview-scroll::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.15);
+  background: var(--scrollbar-thumb);
   border-radius: 999px;
 }
 
 .card-preview-scroll::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.04);
+  background: var(--scrollbar-track);
 }
 
 .read-the-docs {
   color: #888;
+}
+
+.urgency-indicator {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  border: 2px solid;
+  margin-right: 0.5rem;
+  flex-shrink: 0;
+}
+
+.urgency-low {
+  border-color: #fde047;
+  background-color: #fef08a;
+}
+
+.urgency-medium {
+  border-color: #fb923c;
+  background-color: #fed7aa;
+}
+
+.urgency-high {
+  border-color: #ef4444;
+  background-color: #fecaca;
+}
+
+[data-theme='dark'] .urgency-low {
+  border-color: #fbbf24;
+  background-color: #e8e115;
+}
+
+[data-theme='dark'] .urgency-medium {
+  border-color: #fb923c;
+  background-color: #ff9c4d;
+}
+
+[data-theme='dark'] .urgency-high {
+  border-color: #dc2626;
+  background-color: #7f1d1d;
 }
 
 .note-preview-widget,
