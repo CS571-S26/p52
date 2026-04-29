@@ -13,6 +13,7 @@ function NotesPage() {
         const newNote = {
             id: Date.now(),
             createdAt: now,
+            updatedAt: now,
             title: 'New Note',
             content: '',
         };
@@ -28,7 +29,7 @@ function NotesPage() {
                 {notes.map((note) => (
                     <Col key={note.id} md={4} className="mb-3">
                         <Card>
-                            <Card.Body>
+                            <Card.Body className="text-start">
                                 <Card.Title>
                                     <Link to={`/notes/${note.id}`}>{note.title}</Link>
                                 </Card.Title>

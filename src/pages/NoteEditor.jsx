@@ -12,8 +12,9 @@ function NoteEditor() {
     const note = notes.find((n) => n.id === parseInt(noteId));
 
     const updateNote = (updatedFields) => {
+        const timestamp = new Date().toISOString();
         const updatedNotes = notes.map((n) =>
-            n.id === parseInt(noteId) ? { ...n, ...updatedFields } : n
+            n.id === parseInt(noteId) ? { ...n, ...updatedFields, updatedAt: timestamp } : n
         );
         setNotes(updatedNotes);
     };
@@ -59,7 +60,7 @@ function NoteEditor() {
                         />
                     ) : (
                         <div
-                            className="note-markdown-preview flex-grow-1 overflow-auto p-3"
+                            className="note-markdown-preview flex-grow-1 overflow-auto p-3 text-start"
                             onClick={() => setIsEditingContent(true)}
                             style={{ cursor: 'text', minHeight: 0, border: '1px solid #e9ecef', borderRadius: '0.375rem' }}
                         >

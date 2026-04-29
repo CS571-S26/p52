@@ -124,7 +124,7 @@ function OutlookWidget() {
                 {!loading && !error && messages.length > 0 ? (
                     <ListGroup variant="flush" className="flex-grow-1 overflow-auto">
                         {messages.map((message) => (
-                            <ListGroup.Item key={message.id} className="px-0">
+                            <ListGroup.Item key={message.id} className="px-0 text-start">
                                 <div className="fw-semibold text-truncate" title={message.subject || '(No subject)'}>
                                     {message.webLink ? (
                                         <a href={message.webLink} target="_blank" rel="noreferrer">

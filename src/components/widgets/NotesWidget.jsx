@@ -4,7 +4,14 @@ import { Link } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import useLocalStorage from '../../hooks/useLocalStorage';
 
-const getCreatedTimestamp = (note) => {
+const getModifiedTimestamp = (note) => {
+    if (note.updatedAt) {
+        const parsed = new Date(note.updatedAt).getTime();
+        if (!Number.isNaN(parsed)) {
+            return parsed;
+        }
+    }
+
     if (note.createdAt) {
         const parsed = new Date(note.createdAt).getTime();
         if (!Number.isNaN(parsed)) {
@@ -19,8 +26,8 @@ const getCreatedTimestamp = (note) => {
     return 0;
 };
 
-const formatCreatedDate = (note) => {
-    const timestamp = getCreatedTimestamp(note);
+const formatModifiedDate = (note) => {
+    const timestamp = getModifiedTimestamp(note);
     if (!timestamp) {
         return 'Unknown date';
     }
@@ -36,7 +43,7 @@ function NotesWidget() {
     const [notes] = useLocalStorage('notes', []);
     const [activeIndex, setActiveIndex] = useState(0);
     const safeNotes = Array.isArray(notes) ? notes : [];
-    const sortedNotes = [...safeNotes].sort((a, b) => getCreatedTimestamp(b) - getCreatedTimestamp(a));
+    const sortedNotes = [...safeNotes].sort((a, b) => getModifiedTimestamp(b) - getModifiedTimestamp(a));
     const activeNote = sortedNotes[activeIndex] || null;
     const notesCount = sortedNotes.length;
 
@@ -56,7 +63,7 @@ function NotesWidget() {
 
     return (
         <Card className="h-100 w-100">
-            <Card.Body className="d-flex flex-column">
+            <Card.Body className="d-flex flex-column text-start">
                 <div className="d-flex justify-content-between align-items-center mb-2">
                     <Card.Title className="mb-0">
                         <Link to="/notes">Most Recent Notes</Link>
@@ -98,7 +105,7 @@ function NotesWidget() {
                                             : 'Untitled Note'}
                                     </Link>
                                 </h6>
-                                <small className="text-muted">Created {formatCreatedDate(activeNote)}</small>
+                                <small className="text-muted">Edited {formatModifiedDate(activeNote)}</small>
                             </div>
                             <small className="text-muted">{activeIndex + 1}/{notesCount}</small>
                         </div>

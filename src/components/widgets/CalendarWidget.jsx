@@ -3,6 +3,7 @@ import { Card, Alert, ListGroup, Spinner, Button } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import useLocalStorage from '../../hooks/useLocalStorage';
 import { getStoredGoogleAuth, getValidGoogleAccessToken } from '../../services/googleAuth';
+import { FaList, FaCalendar } from 'react-icons/fa';
 
 const formatEventDate = (event) => {
     const dateTime = event.start?.dateTime;
@@ -44,6 +45,7 @@ function CalendarWidget() {
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [viewMode, setViewMode] = useState('list'); // 'list' or 'calendar'
 
     const hasConfig = Boolean((googleConfig.clientId || '').trim());
     const hasAuth = Boolean(getStoredGoogleAuth());
@@ -88,12 +90,68 @@ function CalendarWidget() {
         loadEvents();
     }, [loadEvents]);
 
+    // Build a map of dates with events for calendar view
+    const eventsByDate = new Map();
+    events.forEach((event) => {
+        const dateTime = event.start?.dateTime;
+        const dateOnly = event.start?.date;
+        const dateStr = dateTime ? dateTime.split('T')[0] : dateOnly;
+        if (dateStr) {
+            if (!eventsByDate.has(dateStr)) {
+                eventsByDate.set(dateStr, []);
+            }
+            eventsByDate.get(dateStr).push(event);
+        }
+    });
+
+    // Generate calendar grid for current month
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const startDate = new Date(firstDay);
+    startDate.setDate(startDate.getDate() - firstDay.getDay());
+
+    const calendarDays = [];
+    let currentDate = new Date(startDate);
+    while (currentDate <= lastDay || calendarDays.length % 7 !== 0) {
+        calendarDays.push(new Date(currentDate));
+        currentDate.setDate(currentDate.getDate() + 1);
+        if (calendarDays.length >= 42) break; // Max 6 weeks
+    }
+
+    const monthName = firstDay.toLocaleString(undefined, { month: 'long', year: 'numeric' });
+
     return (
         <Card className="h-100 w-100">
             <Card.Body className="d-flex flex-column">
-                <div className="d-flex justify-content-between align-items-center mb-2">
+                <div className="d-flex justify-content-between align-items-center mb-3">
                     <Card.Title className="mb-0">Google Calendar</Card.Title>
-                    {!hasAuth ? <Link to="/settings">Configure</Link> : null}
+                    <div className="d-flex gap-2">
+                        {!hasAuth ? (
+                            <Link to="/settings">Configure</Link>
+                        ) : (
+                            <div className="d-flex gap-2">
+                                <Button
+                                    variant={viewMode === 'list' ? 'secondary' : 'outline-secondary'}
+                                    size="sm"
+                                    onClick={() => setViewMode('list')}
+                                    className="d-flex align-items-center gap-1"
+                                >
+                                    <FaList size={16} color={viewMode === 'list' ? 'white' : '#666'} />
+                                </Button>
+                                <Button
+                                    variant={viewMode === 'calendar' ? 'secondary' : 'outline-secondary'}
+                                    size="sm"
+                                    onClick={() => setViewMode('calendar')}
+                                    className="d-flex align-items-center gap-1"
+                                >
+                                    <FaCalendar size={16} color={viewMode === 'calendar' ? 'white' : '#666'} />
+                                </Button>
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {!hasConfig ? (
@@ -124,7 +182,7 @@ function CalendarWidget() {
                         style={{ maxHeight: EVENTS_LIST_MAX_HEIGHT }}
                     >
                         {events.map((event) => (
-                            <ListGroup.Item key={event.id} className="px-0">
+                            <ListGroup.Item key={event.id} className="px-0 text-start">
                                 <div className="fw-semibold text-truncate" title={event.summary || '(No title)'}>
                                     {event.htmlLink ? (
                                         <a href={event.htmlLink} target="_blank" rel="noreferrer">
@@ -138,6 +196,45 @@ function CalendarWidget() {
                             </ListGroup.Item>
                         ))}
                     </ListGroup>
+                ) : null}
+
+                {/* Calendar View */}
+                {viewMode === 'calendar' && !loading && !error && hasConfig && hasAuth ? (
+                    <div className="flex-grow-1 d-flex flex-column">
+                        <h6 className="text-center mb-3 text-muted">{monthName}</h6>
+                        <div className="d-grid" style={{ gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.5rem' }}>
+                            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+                                <div key={day} className="text-center text-muted small fw-bold">
+                                    {day}
+                                </div>
+                            ))}
+                            {calendarDays.map((date, idx) => {
+                                const dateStr = date.toISOString().split('T')[0];
+                                const hasEvent = eventsByDate.has(dateStr);
+                                const isCurrentMonth = date.getMonth() === month;
+                                return (
+                                    <div
+                                        key={idx}
+                                        className="d-flex flex-column align-items-center justify-content-center text-center"
+                                        style={{
+                                            padding: '0.5rem',
+                                            borderRadius: '0.4rem',
+                                            backgroundColor: isCurrentMonth ? 'transparent' : '#f9f9f9',
+                                            cursor: 'default',
+                                            minHeight: '2.5rem',
+                                        }}
+                                    >
+                                        <small className={isCurrentMonth ? 'fw-normal' : 'text-muted fw-light'}>
+                                            {date.getDate()}
+                                        </small>
+                                        {hasEvent && (
+                                            <div style={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: '#007bff', marginTop: '0.2rem' }} />
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
                 ) : null}
 
                 {!loading && !error && hasConfig && hasAuth && events.length === 0 ? (
