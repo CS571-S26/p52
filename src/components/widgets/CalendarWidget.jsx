@@ -46,6 +46,9 @@ function CalendarWidget() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [viewMode, setViewMode] = useState('list'); // 'list' or 'calendar'
+    const [displayMonth, setDisplayMonth] = useState(new Date().getMonth());
+    const [displayYear, setDisplayYear] = useState(new Date().getFullYear());
+    const [hoveredDayIdx, setHoveredDayIdx] = useState(null);
 
     const hasConfig = Boolean((googleConfig.clientId || '').trim());
     const hasAuth = Boolean(getStoredGoogleAuth());
@@ -104,12 +107,9 @@ function CalendarWidget() {
         }
     });
 
-    // Generate calendar grid for current month
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth();
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
+    // Generate calendar grid for displayed month
+    const firstDay = new Date(displayYear, displayMonth, 1);
+    const lastDay = new Date(displayYear, displayMonth + 1, 0);
     const startDate = new Date(firstDay);
     startDate.setDate(startDate.getDate() - firstDay.getDay());
 
@@ -122,6 +122,24 @@ function CalendarWidget() {
     }
 
     const monthName = firstDay.toLocaleString(undefined, { month: 'long', year: 'numeric' });
+
+    const handlePreviousMonth = () => {
+        if (displayMonth === 0) {
+            setDisplayMonth(11);
+            setDisplayYear(displayYear - 1);
+        } else {
+            setDisplayMonth(displayMonth - 1);
+        }
+    };
+
+    const handleNextMonth = () => {
+        if (displayMonth === 11) {
+            setDisplayMonth(0);
+            setDisplayYear(displayYear + 1);
+        } else {
+            setDisplayMonth(displayMonth + 1);
+        }
+    };
 
     return (
         <Card className="h-100 w-100">
@@ -175,7 +193,7 @@ function CalendarWidget() {
 
                 {error ? <Alert variant="warning" className="mb-2">{error}</Alert> : null}
 
-                {!loading && !error && events.length > 0 ? (
+                {viewMode === 'list' && !loading && !error && events.length > 0 ? (
                     <ListGroup
                         variant="flush"
                         className="flex-grow-1 overflow-auto"
@@ -198,10 +216,24 @@ function CalendarWidget() {
                     </ListGroup>
                 ) : null}
 
+                {viewMode === 'list' && !loading && !error && hasConfig && hasAuth && events.length === 0 ? (
+                    <Card.Text className="text-muted mb-0">
+                        No upcoming events found.
+                    </Card.Text>
+                ) : null}
+
                 {/* Calendar View */}
                 {viewMode === 'calendar' && !loading && !error && hasConfig && hasAuth ? (
                     <div className="flex-grow-1 d-flex flex-column">
-                        <h6 className="text-center mb-3 text-muted">{monthName}</h6>
+                        <div className="d-flex justify-content-between align-items-center mb-3">
+                            <Button variant="outline-secondary" size="sm" onClick={handlePreviousMonth}>
+                                ←
+                            </Button>
+                            <h6 className="text-center mb-0 text-muted">{monthName}</h6>
+                            <Button variant="outline-secondary" size="sm" onClick={handleNextMonth}>
+                                →
+                            </Button>
+                        </div>
                         <div className="d-grid" style={{ gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.5rem' }}>
                             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
                                 <div key={day} className="text-center text-muted small fw-bold">
@@ -210,19 +242,24 @@ function CalendarWidget() {
                             ))}
                             {calendarDays.map((date, idx) => {
                                 const dateStr = date.toISOString().split('T')[0];
-                                const hasEvent = eventsByDate.has(dateStr);
-                                const isCurrentMonth = date.getMonth() === month;
+                                const dayEvents = eventsByDate.get(dateStr) || [];
+                                const hasEvent = dayEvents.length > 0;
+                                const isCurrentMonth = date.getMonth() === displayMonth;
+                                const isHovered = hoveredDayIdx === idx;
                                 return (
                                     <div
                                         key={idx}
-                                        className="d-flex flex-column align-items-center justify-content-center text-center"
+                                        className="d-flex flex-column align-items-center justify-content-center text-center position-relative"
                                         style={{
                                             padding: '0.5rem',
                                             borderRadius: '0.4rem',
                                             backgroundColor: isCurrentMonth ? 'transparent' : '#f9f9f9',
-                                            cursor: 'default',
+                                            cursor: hasEvent ? 'pointer' : 'default',
                                             minHeight: '2.5rem',
                                         }}
+                                        onMouseEnter={() => hasEvent && setHoveredDayIdx(idx)}
+                                        onMouseLeave={() => setHoveredDayIdx(null)}
+                                        title={hasEvent ? `${dayEvents.length} event${dayEvents.length > 1 ? 's' : ''}` : ''}
                                     >
                                         <small className={isCurrentMonth ? 'fw-normal' : 'text-muted fw-light'}>
                                             {date.getDate()}
@@ -230,17 +267,49 @@ function CalendarWidget() {
                                         {hasEvent && (
                                             <div style={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: '#007bff', marginTop: '0.2rem' }} />
                                         )}
+
+                                        {/* Hover Tooltip */}
+                                        {isHovered && hasEvent && (
+                                            <div
+                                                className="position-absolute"
+                                                style={{
+                                                    bottom: '100%',
+                                                    left: '50%',
+                                                    transform: 'translateX(-50%)',
+                                                    marginBottom: '0.5rem',
+                                                    backgroundColor: '#fff',
+                                                    border: '1px solid #ddd',
+                                                    borderRadius: '0.4rem',
+                                                    padding: '0.5rem',
+                                                    minWidth: '200px',
+                                                    maxWidth: '250px',
+                                                    zIndex: 10,
+                                                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                                                    pointerEvents: 'none',
+                                                }}
+                                            >
+                                                {dayEvents.slice(0, 3).map((event, i) => (
+                                                    <div key={i} className="mb-1">
+                                                        <div className="fw-semibold text-truncate small" title={event.summary}>
+                                                            {event.summary}
+                                                        </div>
+                                                        <div className="text-muted text-truncate" style={{ fontSize: '0.75rem' }}>
+                                                            {formatEventDate(event)}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                                {dayEvents.length > 3 && (
+                                                    <div className="small text-muted" style={{ fontSize: '0.75rem' }}>
+                                                        +{dayEvents.length - 3} more
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                 );
                             })}
                         </div>
                     </div>
-                ) : null}
-
-                {!loading && !error && hasConfig && hasAuth && events.length === 0 ? (
-                    <Card.Text className="text-muted mb-0">
-                        No upcoming events found.
-                    </Card.Text>
                 ) : null}
 
                 <Button
